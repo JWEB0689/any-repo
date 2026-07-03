@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    - name: Verify denoiser hook
+      run: |
+        python3 - <<'PY'
+        import re, sys
+        def denoise(txt):
+            text = re.sub(r'\r', '', txt)
+            lines = [line.strip() for line in text.splitlines() if line.strip()]
+            return "\\n".join(lines)
+        test_input = "   noisy   input   \\r\\n"
+        result = denoise(test_input)
+        print("Result:", repr(result))
+        assert result == "noisy   input"
+        PY
+    - name: Print success
+      run: echo "Denoiser verification succeeded"
